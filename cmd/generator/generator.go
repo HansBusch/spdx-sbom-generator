@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/spdx/spdx-sbom-generator/pkg/handler"
-	"github.com/spdx/spdx-sbom-generator/pkg/models"
+	"github.com/spdx/spdx-sbom-generator/pkg/runner/options"
 )
 
 const jsonLogFormat = "json"
@@ -43,6 +43,7 @@ func main() {
 func init() {
 	rootCmd.Flags().StringP("path", "p", ".", "the path to package file or the path to a directory which will be recursively analyzed for the package files (default '.')")
 	rootCmd.Flags().BoolP("include-license-text", "i", false, " Include full license text (default: false)")
+	rootCmd.Flags().BoolP("license-concluded", "", false, " Accept declared license as concluded (default: false)")
 	rootCmd.Flags().StringP("schema", "s", "2.2", "<version> Target schema version (default: '2.2')")
 	rootCmd.Flags().StringP("output-dir", "o", ".", "<output> directory to Write SPDX to file (default: current directory)")
 	rootCmd.Flags().StringP("format", "f", "spdx", "output file format (default: spdx)")
@@ -52,14 +53,14 @@ func init() {
 	cobra.OnInitialize(setupLogger)
 }
 
-func parseOutputFormat(formatOption string) models.OutputFormat {
+func parseOutputFormat(formatOption string) options.OutputFormat {
 	switch processedFormatOption := strings.ToLower(formatOption); processedFormatOption {
 	case "spdx":
-		return models.OutputFormatSpdx
+		return options.OutputFormatSpdx
 	case "json":
-		return models.OutputFormatJson
+		return options.OutputFormatJson
 	default:
-		return models.OutputFormatSpdx
+		return options.OutputFormatSpdx
 	}
 }
 
@@ -104,8 +105,9 @@ func generate(cmd *cobra.Command, args []string) {
 		log.Fatalf("Failed to read command option: %v", err)
 	}
 	globalSettingFile := checkOpt("global-settings")
+	concluded, _ := cmd.Flags().GetBool("license-concluded")
 
-	handler, err := handler.NewSPDX(handler.SPDXSettings{
+	handler, err := handler.NewSPDX(options.Options{
 		Version:           version,
 		Path:              path,
 		License:           license,
@@ -113,6 +115,7 @@ func generate(cmd *cobra.Command, args []string) {
 		Schema:            schema,
 		Format:            format,
 		GlobalSettingFile: globalSettingFile,
+		LicenseConcluded:  concluded,
 	})
 	if err != nil {
 		log.Fatalf("Failed to initialize command: %v", err)

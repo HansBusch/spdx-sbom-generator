@@ -13,37 +13,25 @@ import (
 	"github.com/spdx/spdx-sbom-generator/pkg/helper"
 	"github.com/spdx/spdx-sbom-generator/pkg/models"
 	"github.com/spdx/spdx-sbom-generator/pkg/modules"
+	"github.com/spdx/spdx-sbom-generator/pkg/runner/options"
 )
 
 var errNoModuleManagerFound = errors.New("No module manager found")
 var errOutputDirDoesNotExist = errors.New("Output Directory does not exist")
 
-// SPDXSettings ...
-type SPDXSettings struct {
-	Version           string
-	Path              string
-	License           bool
-	Depth             string
-	OutputDir         string
-	Schema            string
-	Format            models.OutputFormat
-	GlobalSettingFile string
-}
-
 type spdxHandler struct {
-	config         SPDXSettings
+	config         options.Options
 	modulesManager []*modules.Manager
-	format         format.Format
 	outputFiles    map[string]string
 	errors         map[string]error
 }
 
 // getFiletypeForOutputFormat gets the type suffix for the type of output chosen
-func getFiletypeForOutputFormat(outputFormat models.OutputFormat) string {
+func getFiletypeForOutputFormat(outputFormat options.OutputFormat) string {
 	switch outputFormat {
-	case models.OutputFormatSpdx:
+	case options.OutputFormatSpdx:
 		return "spdx" // nolint
-	case models.OutputFormatJson:
+	case options.OutputFormatJson:
 		return "json"
 	default:
 		return "spdx"
@@ -51,7 +39,7 @@ func getFiletypeForOutputFormat(outputFormat models.OutputFormat) string {
 }
 
 // NewSPDX ...
-func NewSPDX(settings SPDXSettings) (Handler, error) {
+func NewSPDX(settings options.Options) (Handler, error) {
 	if !helper.Exists(settings.OutputDir) {
 		return nil, errOutputDirDoesNotExist
 	}
@@ -98,6 +86,7 @@ func (sh *spdxHandler) Run() error {
 				return mm.GetSource()
 			},
 			GlobalSettingFile: globalSettingFile,
+			Options:           sh.config,
 		})
 		if err != nil {
 			sh.errors[plugin.Slug] = err

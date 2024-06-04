@@ -12,6 +12,8 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/spdx/spdx-sbom-generator/pkg/models"
+	"github.com/spdx/spdx-sbom-generator/pkg/runner/dochandlers/common"
+	"github.com/spdx/spdx-sbom-generator/pkg/runner/options"
 )
 
 const (
@@ -30,9 +32,10 @@ type Format struct {
 type Config struct {
 	ToolVersion       string
 	Filename          string
-	OutputFormat      models.OutputFormat
+	OutputFormat      options.OutputFormat
 	GetSource         func() []models.Module
 	GlobalSettingFile string
+	Options           options.Options
 }
 
 func init() {
@@ -73,9 +76,9 @@ func (f *Format) Render() error {
 	var spdxRenderer SPDXRenderer
 
 	switch f.Config.OutputFormat {
-	case models.OutputFormatSpdx:
+	case options.OutputFormatSpdx:
 		spdxRenderer = TagValueSPDXRenderer{}
-	case models.OutputFormatJson:
+	case options.OutputFormatJson:
 		spdxRenderer = JsonSPDXRenderer{}
 	}
 
@@ -148,6 +151,10 @@ func (f *Format) annotateDocumentWithPackages(modules []models.Module, document 
 
 // WIP
 func (f *Format) convertToPackage(module models.Module) (models.Package, error) {
+	licConc := common.NoAssertion
+	if f.Config.Options.LicenseConcluded {
+		licConc = module.LicenseDeclared
+	}
 	return models.Package{
 		PackageName:             module.Name,
 		SPDXID:                  setPkgSPDXID(module.Name, module.Version, module.Root),
@@ -160,7 +167,7 @@ func (f *Format) convertToPackage(module models.Module) (models.Package, error) 
 			Value:     module.CheckSum.String(),
 		}},
 		PackageHomePage:         buildHomepageURL(module.PackageURL),
-		PackageLicenseConcluded: setPkgValue(module.LicenseConcluded),
+		PackageLicenseConcluded: setPkgValue(licConc),
 		PackageLicenseDeclared:  setPkgValue(module.LicenseDeclared),
 		PackageCopyrightText:    setPkgValue(module.Copyright),
 		PackageLicenseComments:  setPkgValue(""),

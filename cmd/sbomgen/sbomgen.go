@@ -3,7 +3,9 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -39,6 +41,7 @@ func main() {
 func init() {
 	rootCmd.Flags().StringP("path", "p", ".", "the path to package file or the path to a directory which will be recursively analyzed for the package files (default '.')")
 	rootCmd.Flags().BoolP("include-license-text", "i", false, " Include full license text (default: false)")
+	rootCmd.Flags().BoolP("license-concluded", "", false, " Accept declared license as concluded (default: false)")
 	rootCmd.Flags().StringP("schema", "s", "2.3", "<version> Target schema version (default: '2.3')")
 	rootCmd.Flags().StringP("output-dir", "o", "", "<output> directory to write SPDX doc (default: if not specified, doc is written to stdout)")
 	rootCmd.Flags().StringP("format", "f", "spdx", "output file format (default: spdx)")
@@ -99,7 +102,9 @@ func generate(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatalf("Failed to read command option: %v", err)
 	}
+	concluded, _ := cmd.Flags().GetBool("license-concluded")
 	globalSettingFile := checkOpt("global-settings")
+	fmt.Print("concluded = " + strconv.FormatBool(concluded))
 
 	opts := options.Options{
 		SchemaVersion:     schema,
@@ -113,6 +118,7 @@ func generate(cmd *cobra.Command, args []string) {
 		GlobalSettingFile: globalSettingFile,
 		Path:              path,
 		Plugins:           options.DefaultPlugins,
+		LicenseConcluded:  concluded,
 	}
 
 	err = runner.NewWithOptions(opts).CreateSBOM()

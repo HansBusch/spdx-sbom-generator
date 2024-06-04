@@ -91,6 +91,9 @@ func (g *Generator) CreateSBOM() error {
 		if m.Root {
 			rootPackages = append(rootPackages, m)
 		}
+		if g.Options.LicenseConcluded {
+			m.LicenseConcluded = m.LicenseDeclared
+		}
 	}
 
 	// Get a new empty document from the document handler

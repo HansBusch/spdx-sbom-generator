@@ -6,9 +6,9 @@ import (
 	"github.com/opensbom-generator/parsers/cargo"
 	"github.com/opensbom-generator/parsers/composer"
 	"github.com/opensbom-generator/parsers/gem"
-	"github.com/opensbom-generator/parsers/go"
-	"github.com/opensbom-generator/parsers/gradle"
-	"github.com/opensbom-generator/parsers/maven"
+	gomod "github.com/opensbom-generator/parsers/go"
+	javagradle "github.com/opensbom-generator/parsers/gradle"
+	javamaven "github.com/opensbom-generator/parsers/maven"
 	"github.com/opensbom-generator/parsers/npm"
 	"github.com/opensbom-generator/parsers/nuget"
 	"github.com/opensbom-generator/parsers/pip"
@@ -47,6 +47,7 @@ type Options struct {
 	GlobalSettingFile string
 	Path              string
 	Plugins           []plugin.Plugin
+	LicenseConcluded  bool
 }
 
 // SetSlug sets the slug in options.
