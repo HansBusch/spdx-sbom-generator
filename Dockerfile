@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-FROM golang:1.17-alpine AS build
+FROM golang:1.23-alpine AS build
 ARG VERSION=latest
 ARG GIT_HASH
 
@@ -27,10 +27,10 @@ RUN apk add --update ruby && gem install bundler
 RUN apk add go
 
 # Java
-RUN apk add --update maven
+# RUN apk add --update maven
 
 # Node
-RUN apk add --update nodejs npm && npm install -g yarn
+# RUN apk add --update nodejs npm && npm install -g yarn
 
 COPY --from=build /src/spdx-sbom-generator /spdx-sbom-generator
 
